@@ -3,5 +3,5 @@
 * [ETLSetup](etl.md)
 * [LakeFormation](lakeformation.md)
 * [Athena](athena.md)
-* [Data](harvest.json ':include :type=code :fragment=demo')
+* [Data](data.md)
 * [Bonus](bonus.md)
