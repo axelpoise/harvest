@@ -12,6 +12,20 @@ Default output format: JSON
 ```
 
 ## Write the first code
+create a cdk project
+```shell
+cdk init app --language python 
+```
+have a look
+```shell
+ls
+```
+open in your IDE and in the terminal of your IDE run
+```shell
+source .venv/bin/activate
+```
+or on windows the `source.bat` file by typing the name of the file in the terminal.
+
 
 Add the following depencencies to your `requirements.txt` and do a pip install.
 ```requirements.txt
