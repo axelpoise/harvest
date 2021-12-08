@@ -12,15 +12,16 @@ Default output format: JSON
 ```
 
 ## Write the first code
-create a cdk project
+copy a cdk project base to get started
 ```shell
-cdk init app --language python 
+git clone https://github.com/axelpoise/harvest_template.git <<<your_project_name>>>
+cd <<<your_project_name>>>
 ```
-have a look
+install a virtual env in the root of the new project
 ```shell
-ls
+python -m venv .venv
 ```
-open in your IDE and in the terminal of your IDE run
+open the project in your IDE and in the terminal of your IDE run
 ```shell
 source .venv/bin/activate
 ```
@@ -43,9 +44,8 @@ aws_cdk.aws_glue
 aws_cdk.aws_athena
 aws_cdk.aws_lakeformation
 pyspark
-awsglue-local
 ```
-Create a package with the following code in your `__init__.py`
+In the base setup package at the following code in your `__init__.py`
 ```python
 from aws_cdk import core
 

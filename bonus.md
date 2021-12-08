@@ -35,3 +35,14 @@ https://docs.aws.amazon.com/codepipeline/latest/userguide/create-cloudtrail-S3-s
 ## Explore other tools
 Check the free tier options:
 https://aws.amazon.com/free/?all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc
+
+## Local intellisense for creating your own awsglue spark data pipelines
+The AWS Glue team has a public python repository on github with all the glue transforms for Spark. 
+
+`git clone https://github.com/awslabs/aws-glue-libs`
+
+After downloading this package there are multiple ways to add the `awsglue` folder of this repository to your working directory. For this masterclass I suggest the quick and unsustainable way. 
+
+Option 1: copy the folder to the directory where you write your aws glue spark jobs as a subfolder. 
+
+Option 2: use this downloaded repository as your new root folder. Create a Virtual Env and install `pyspark`.
