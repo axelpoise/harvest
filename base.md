@@ -102,7 +102,7 @@ add base setup to application
 
 from aws_cdk import core
 
-from base_setup.base_setup_stack import BaseSetupStack
+from base_setup import BaseSetupStack
 
 app = core.App()
 base = BaseSetupStack(app, "base-setup")

@@ -5,12 +5,6 @@
 to run the docker open any terminal and run:
 ```shell
 # Terminal 1
-docker run -itd --name glue_without_notebook amazon/aws-glue-libs:glue_libs_1.0.0_image_01
-docker exec -it glue_without_notebook bash
-```
-In another terminal run:
-```shell
-# Terminal 2
 docker run -itd -p 8888:8888 -p 4040:4040 -v ~/.aws:/root/.aws:ro --name glue_jupyter \amazon/aws-glue-libs:glue_libs_1.0.0_image_01 \
 /home/jupyter/jupyter_start.sh
 ```
