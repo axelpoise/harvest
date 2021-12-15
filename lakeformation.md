@@ -168,13 +168,13 @@ workflow role
 
         return workflow_role
 ```
-synth
+synth stack
 ```shell
-
+cdk synth --app 'python3 app.py' --profile harvest
 ```
-deploy
+deploy stack
 ```shell
-
+cdk deploy lakeformation-setup --profile harvest
 ```
 ## Test access for roles
 get roles
@@ -219,7 +219,7 @@ put data lake settings for future databases
 ```shell
 aws lakeformation put-data-lake-settings --data-lake-settings '{ "DataLakeAdmins": [ { "DataLakePrincipalIdentifier": "arn:aws:iam::<account>:role/<lake formation admin role>"}, <harvest user principal>], "CreateDatabaseDefaultPermissions": [ { "Principal": { "DataLakePrincipalIdentifier": "IAM_ALLOWED_PRINCIPALS" }, "Permissions": [ ] } ], "CreateTableDefaultPermissions": [ { "Principal": { "DataLakePrincipalIdentifier": "IAM_ALLOWED_PRINCIPALS" }, "Permissions": [ ] } ], "TrustedResourceOwners": [] }' --profile harvest
 ```
-### Lake formation permissions
+## Lake formation permissions
 lake formation permissions resource
 ```python
 aws_lakeformation.CfnPermissions(self, f"Permissions{id_}",
@@ -245,8 +245,8 @@ class LakeFormationPermissions:
     SUPER = 'ALL'
 ```
 
-### Create permissions for the analyst
-In the new stack add the resource names.
+### Create permissions for the analyst in the LakeformationPermissionsAdministrationStack
+In the permissions administration stack add the resource names.
 ```python
 database_arn = f"arn:aws:glue:f{self.region}:{self.account}:database/" + "harvestdb"
 table_arn = f"arn:aws:glue:{self.region}:{self.account}:table/" + "harvestdb" + "/" + "base_setup_rawbucket0c3ee094_14eptovdemao"
@@ -323,7 +323,7 @@ Get glue tables with analyst.
 aws glue get-tables --database-name 'harvestdb' --profile assumed-analyst
 ```
 
-### Register resources with lake formation
+## Register resources with lake formation
 register s3 bucket
 ```python
 aws_lakeformation.CfnResource(self, "RawBucketLakeformationRegistration",
