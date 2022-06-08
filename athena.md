@@ -11,7 +11,7 @@ create athena query.
 ```python
 result = client.start_query_execution(
     QueryString="""--sql
-    SELECT * FROM harvestdb.base_setup_rawbucket0c3ee094_14eptovdemao LIMIT 10
+    SELECT * FROM treesdb.<<table_name>> LIMIT 10
     """,
     QueryExecutionContext={
         'Database': 'treesdb'
