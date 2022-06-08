@@ -1,19 +1,23 @@
 # Athena
 ## Athena Query with boto3
 setup boto3 session
-```python
-session = boto3.session.Session(profile_name='assumed-analyst')
+```python 
+import boto3
+
+session = boto3.session.Session(profile_name='data')
 client = session.client('athena')
 ```
 create athena query.
 ```python
 result = client.start_query_execution(
-    QueryString='SELECT * FROM harvestdb.base_setup_rawbucket0c3ee094_14eptovdemao LIMIT 10',
+    QueryString="""--sql
+    SELECT * FROM harvestdb.base_setup_rawbucket0c3ee094_14eptovdemao LIMIT 10
+    """,
     QueryExecutionContext={
-        'Database': 'harvestdb'
+        'Database': 'treesdb'
     },
     ResultConfiguration={
-        'OutputLocation': 's3://base-setup-modifiedbucket9b9e950b-1nk6t0unvltlq/athena-logs'
+        'OutputLocation': '<<outputbucket_name>>/athena-logs'
 
     },
     WorkGroup='primary'
@@ -41,5 +45,5 @@ python athena_queries.py
 ```
 Run the following to get table columns
 ```shell
-aws glue get-tables --database-name 'harvestdb' --profile assumed-analyst
+aws glue get-tables --database-name 'treesdb' --profile data
 ```
