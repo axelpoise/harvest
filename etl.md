@@ -113,7 +113,7 @@ create service role method
         return glue_service_role
 
 ```
-create workflow method
+create job and crawler method
 ```python
     def create_job_and_crawler(self,
                         database: glue.Database,
@@ -155,21 +155,21 @@ create job
                                    )
 ```
 
+create a workflow placeholder
+```python
+        self.trees_workflow = cdk.aws_glue.CfnWorkflow(self, "TreesWorkflow",
+                                                default_run_properties=None,
+                                                description="trees workflow",
+                                                name="TreesWorkflow")
+```
+
 create workflow stack
 ```python
 class ETLWorkflowStack(cdk.Stack):
 
     def __init__(self, scope: Construct, construct_id: str,
-        crawler: cdk.aws_glue.CfnCrawler, job: cdk.aws_glue.CfnJob):
+        crawler: cdk.aws_glue.CfnCrawler, job: cdk.aws_glue.CfnJob, workflow: ckd.aws_glue.CfnWorkflow):
         super().__init__(scope, construct_id, env=get_environment())
-```
-
-create workflow
-```python
-        trees_workflow = cdk.aws_glue.CfnWorkflow(self, "TreesWorkflow",
-                                                default_run_properties=None,
-                                                description="trees workflow",
-                                                name="TreesWorkflow")
 ```
 
 create crawler trigger
@@ -181,19 +181,19 @@ create crawler trigger
 
         crawler_trigger = cdk.aws_glue.CfnTrigger(self, "CrawlerTrigger",
                                               actions=[
-                                                  cdk.aws_glue.CfnTrigger.ActionProperty(crawler_name=raw_crawler.name)
+                                                  cdk.aws_glue.CfnTrigger.ActionProperty(crawler_name=crawler.name)
                                               ],
                                               type=TriggerType.ON_DEMAND,
                                               description="crawler trigger",
                                               name="CrawlerTrigger",
-                                              workflow_name=harvest_workflow.name)
+                                              workflow_name=workflow.name)
 
 ```
 create job trigger
 ```python
         job_trigger = cdk.aws_glue.CfnTrigger(self, "JobTrigger",
                                           actions=[
-                                              cdk.aws_glue.CfnTrigger.ActionProperty(job_name=missing_owner_job.name)
+                                              cdk.aws_glue.CfnTrigger.ActionProperty(job_name=job.name)
                                           ],
                                           type=TriggerType.CONDITIONAL,
                                           description="job trigger",
@@ -203,7 +203,7 @@ create job trigger
                                                                                     crawler_name=raw_crawler.name,
                                                                                     crawl_state='SUCCEEDED')], ),
                                           start_on_creation=True,
-                                          workflow_name=harvest_workflow.name)
+                                          workflow_name=workflow.name)
 
 ```
 
