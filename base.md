@@ -47,9 +47,9 @@ aws sts get-caller-identity --profile data | File-Out --FilePath account.json
 
 Then add in a new file in the project root named environment.py the following code.
 ```python
-from aws_cdk import core
+import aws_cdk
 
-def get_environment()-> core.Environment:
+def get_environment()-> aws_cdk.Environment:
     return core.Environment(region='eu-west-1', account='<<<account number>>>')
 ```
 
