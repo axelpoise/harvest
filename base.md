@@ -93,7 +93,7 @@ add base setup to application
 #!/usr/bin/env python3
 import aws_cdk as cdk
 
-from storage import BaseSetupStack
+from storage import StorageSetupStack
 
 app = cdk.App()
 
