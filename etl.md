@@ -168,7 +168,7 @@ create workflow stack
 class ETLWorkflowStack(cdk.Stack):
 
     def __init__(self, scope: Construct, construct_id: str,
-        crawler: cdk.aws_glue.CfnCrawler, job: cdk.aws_glue.CfnJob, workflow: ckd.aws_glue.CfnWorkflow):
+        crawler: cdk.aws_glue.CfnCrawler, job: cdk.aws_glue.CfnJob, workflow: cdk.aws_glue.CfnWorkflow):
         super().__init__(scope, construct_id, env=get_environment())
 ```
 
@@ -200,7 +200,7 @@ create job trigger
                                           name="JobTrigger",
                                           predicate=cdk.aws_glue.CfnTrigger.PredicateProperty(conditions=[
                                               cdk.aws_glue.CfnTrigger.ConditionProperty(logical_operator="EQUALS",
-                                                                                    crawler_name=raw_crawler.name,
+                                                                                    crawler_name=crawler.name,
                                                                                     crawl_state='SUCCEEDED')], ),
                                           start_on_creation=True,
                                           workflow_name=workflow.name)
@@ -215,7 +215,7 @@ etl = ETLStack(app, "etl-setup", base.raw_bucket, base.script_bucket)
 
 add workflow stack to application
 ```python
-workflow = ETLWorkflowStack(app, "etl-workflow", etl.raw_crawler, etl.trees_job)
+workflow = ETLWorkflowStack(app, "etl-workflow", etl.raw_crawler, etl.trees_job, etl.trees_workflow)
 ```
 
 synthesize
