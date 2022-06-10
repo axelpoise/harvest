@@ -50,7 +50,7 @@ Then add in a new file in the project root named environment.py the following co
 import aws_cdk
 
 def get_environment()-> aws_cdk.Environment:
-    return core.Environment(region='eu-west-1', account='<<<account number>>>')
+    return aws_cdk.Environment(region='eu-west-1', account='<<<account number>>>')
 ```
 
 In the storage package at the following code in your `__init__.py`
