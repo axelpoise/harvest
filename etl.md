@@ -11,19 +11,19 @@ from constructs import Construct
 
 class ETLStack(cdk.Stack):
 
-    def __init__(self, scope: Construct, construct_id: str, raw_bucket: cdk.aws_s3.Bucket, script_bucket: cdk.aws_s3.Bucket):
+    def __init__(self, scope: Construct, construct_id: str, bronze_bucket: cdk.aws_s3.Bucket, script_bucket: cdk.aws_s3.Bucket, name: str):
         super().__init__(scope, construct_id, env=get_environment())
 ```
 create glue database
 ```python
-        self.glue_database = glue.Database(self, "TreesDB",
-                                          database_name="treesdb",
+        self.glue_database = glue.Database(self, f"TreesDB{name}",
+                                          database_name=f"treesdb{name}",
                                           location_uri=raw_bucket.bucket_arn)
 ```
 create service role method
 ```python
-    def create_glue_service_role(self) -> cdk.aws_iam.Role:
-        glue_service_role = cdk.aws_iam.Role(self, "GlueServiceRole",
+    def create_glue_service_role(self, name: str) -> cdk.aws_iam.Role:
+        glue_service_role = cdk.aws_iam.Role(self, f"GlueServiceRole{name}",
                                          assumed_by=cdk.aws_iam.ServicePrincipal("glue.amazonaws.com"))
 
         glue_service_role.add_to_policy(cdk.aws_iam.PolicyStatement(
@@ -118,18 +118,19 @@ create job and crawler method
     def create_job_and_crawler(self,
                         database: glue.Database,
                         script_bucket: cdk.aws_s3.Bucket,
-                        raw_bucket: cdk.aws_s3.Bucket,
-                        glue_service_role: cdk.aws_iam.Role):
+                        bronze_bucket: cdk.aws_s3.Bucket,
+                        glue_service_role: cdk.aws_iam.Role,
+                        name: str):
 ```
 create crawler
 ```python
-        crawler_target = cdk.aws_glue.CfnCrawler.S3TargetProperty(path=f"s3://{raw_bucket.bucket_name}/")
+        crawler_target = cdk.aws_glue.CfnCrawler.S3TargetProperty(path=f"s3://{bronze_bucket.bucket_name}/")
         targets = cdk.aws_glue.CfnCrawler.TargetsProperty(s3_targets=[crawler_target])
-        self.raw_crawler = cdk.aws_glue.CfnCrawler(self, "S3GlueCrawler",
+        self.bronze_crawler = cdk.aws_glue.CfnCrawler(self, f"S3GlueCrawler{name}",
                                  role=glue_service_role.role_arn,
                                  targets=targets,
                                  database_name=database.database_name,
-                                 name="RawCrawler"
+                                 name=f"BronzeCrawler{name}"
                                  )
 ```
 create job
@@ -138,13 +139,13 @@ create job
                                             python_version="3",
                                             script_location=f"s3://{script_bucket.bucket_name}/modifying_dataset.py")
 
-        self.trees_job = cdk.aws_glue.CfnJob(self, "MapTreesGlueJob",
+        self.trees_job = cdk.aws_glue.CfnJob(self, f"MapTreesGlueJob{name}",
                                    command=command,
                                    role=glue_service_role.role_arn,
                                    execution_property=cdk.aws_glue.CfnJob.ExecutionPropertyProperty(max_concurrent_runs=1),
                                    max_retries=0,
-                                   name="MapTrees",
-                                   glue_version="3.0",
+                                   name=f"MapTrees{name}",
+                                   glue_version="4.0",
                                    number_of_workers=2,
                                    worker_type="Standard",
                                    timeout=2,
@@ -157,10 +158,10 @@ create job
 
 create a workflow placeholder
 ```python
-        self.trees_workflow = cdk.aws_glue.CfnWorkflow(self, "TreesWorkflow",
+        self.trees_workflow = cdk.aws_glue.CfnWorkflow(self, f"TreesWorkflow{name}",
                                                 default_run_properties=None,
                                                 description="trees workflow",
-                                                name="TreesWorkflow")
+                                                name=f"TreesWorkflow{name}")
 ```
 
 create workflow stack
@@ -209,13 +210,13 @@ create job trigger
 
 add stack to application
 ```python
-etl = ETLStack(app, "etl-setup", base.raw_bucket, base.script_bucket)
+etl = ETLStack(app, f"etl-setup-{name}", base.raw_bucket, base.script_bucket, name)
 
 ```
 
 add workflow stack to application
 ```python
-workflow = ETLWorkflowStack(app, "etl-workflow", etl.raw_crawler, etl.trees_job, etl.trees_workflow)
+workflow = ETLWorkflowStack(app, f"etl-workflow-{name}", etl.raw_crawler, etl.trees_job, etl.trees_workflow, name)
 ```
 
 synthesize
@@ -311,25 +312,25 @@ aws s3 cp ./script.py s3://<scripts-bucket-name/script-name> --profile data
 ```
 upload data
 ```shell
-aws s3 cp ./data.json s3://<raw-bucket-name> --profile data
+aws s3 cp ./data.json s3://<bronze-bucket-name> --profile data
 ```
 
 deploy etl setup stack
 ```shell
-cdk deploy etl-setup --profile data
+cdk deploy etl-setup-<<<name>>> --profile data
 ```
 deploy etl workflow stack
 ```shell
-cdk deploy etl-workflow --profile data
+cdk deploy etl-workflow-<<<name>>> --profile data
 ```
 
 run workflow
 ```shell
-aws glue start-workflow-run --name TreesWorkflow --profile data
+aws glue start-workflow-run --name TreesWorkflow<<<name>>> --profile data
 ```
 see if table has been created
 ```shell
-aws glue get-tables --database-name 'treesdb' --profile trees
+aws glue get-tables --database-name 'treesdb<<<name>>>' --profile data
 ```
 see if data has been added to job location
 ```shell
@@ -379,7 +380,7 @@ dyf_small.toDF().show()
 
 glueContext.write_dynamic_frame.from_options(\
     frame = dyf_small,\
-    connection_options={'path': 's3://base-setup-scriptsbucket40feb4b1-esjpmoevpj2q'},\
+    connection_options={'path': 's3://base-setup-silverbucket40feb4b1-esjpmoevpj2q'},\
     connection_type='s3',\
     format='parquet')
 ```

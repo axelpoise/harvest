@@ -29,7 +29,7 @@ print(f'query execution id {result["QueryExecutionId"]}')
 sleep(3)
 s3 = session.client('s3')
 response = s3.get_object(
-    Bucket='base-setup-modifiedbucket9b9e950b-1nk6t0unvltlq',
+    Bucket='base-setup-silverbucket9b9e950b-1nk6t0unvltlq',
     Key=f'athena-logs/{result["QueryExecutionId"]}.csv'
 )
 body = response['Body'].read().decode("utf-8")
