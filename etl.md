@@ -18,7 +18,7 @@ create glue database
 ```python
         self.glue_database = glue.Database(self, f"TreesDB{name}",
                                           database_name=f"treesdb{name}",
-                                          location_uri=raw_bucket.bucket_arn)
+                                          location_uri=bronze_bucket.bucket_arn)
 ```
 create service role method
 ```python
@@ -148,11 +148,7 @@ create job
                                    glue_version="4.0",
                                    number_of_workers=2,
                                    worker_type="Standard",
-                                   timeout=2,
-                                   default_arguments={
-                                       '--additional-python-modules':'pyproj==3.3.1,',
-                                       '--extra-py-files': 'pyproj==3.3.1'
-                                       }
+                                   timeout=2
                                    )
 ```
 
@@ -169,7 +165,7 @@ create workflow stack
 class ETLWorkflowStack(cdk.Stack):
 
     def __init__(self, scope: Construct, construct_id: str,
-        crawler: cdk.aws_glue.CfnCrawler, job: cdk.aws_glue.CfnJob, workflow: cdk.aws_glue.CfnWorkflow):
+        crawler: cdk.aws_glue.CfnCrawler, job: cdk.aws_glue.CfnJob, workflow: cdk.aws_glue.CfnWorkflow, name: str):
         super().__init__(scope, construct_id, env=get_environment())
 ```
 
@@ -180,25 +176,25 @@ create crawler trigger
             CONDITIONAL = "CONDITIONAL"
             SCHEDULED = "SCHEDULED"
 
-        crawler_trigger = cdk.aws_glue.CfnTrigger(self, "CrawlerTrigger",
+        crawler_trigger = cdk.aws_glue.CfnTrigger(self, f"CrawlerTrigger{name}",
                                               actions=[
                                                   cdk.aws_glue.CfnTrigger.ActionProperty(crawler_name=crawler.name)
                                               ],
                                               type=TriggerType.ON_DEMAND,
                                               description="crawler trigger",
-                                              name="CrawlerTrigger",
+                                              name=f"CrawlerTrigger{name}",
                                               workflow_name=workflow.name)
 
 ```
 create job trigger
 ```python
-        job_trigger = cdk.aws_glue.CfnTrigger(self, "JobTrigger",
+        job_trigger = cdk.aws_glue.CfnTrigger(self, f"JobTrigger{name}",
                                           actions=[
                                               cdk.aws_glue.CfnTrigger.ActionProperty(job_name=job.name)
                                           ],
                                           type=TriggerType.CONDITIONAL,
                                           description="job trigger",
-                                          name="JobTrigger",
+                                          name=f"JobTrigger{name}",
                                           predicate=cdk.aws_glue.CfnTrigger.PredicateProperty(conditions=[
                                               cdk.aws_glue.CfnTrigger.ConditionProperty(logical_operator="EQUALS",
                                                                                     crawler_name=crawler.name,
@@ -210,13 +206,13 @@ create job trigger
 
 add stack to application
 ```python
-etl = ETLStack(app, f"etl-setup-{name}", base.raw_bucket, base.script_bucket, name)
+etl = ETLStack(app, f"etl-setup-{name}", storage.bronze_bucket, storage.script_bucket, name)
 
 ```
 
 add workflow stack to application
 ```python
-workflow = ETLWorkflowStack(app, f"etl-workflow-{name}", etl.raw_crawler, etl.trees_job, etl.trees_workflow, name)
+workflow = ETLWorkflowStack(app, f"etl-workflow-{name}", etl.bronze_crawler, etl.trees_job, etl.trees_workflow, name)
 ```
 
 synthesize
@@ -284,7 +280,7 @@ dyf_rename_3.toDF().show()
 
 filter on area
 ```python
-dyf_small = Filter.apply(frame=dyf_lon_lat, f=lambda x: x['area'] < 4)
+dyf_small = Filter.apply(frame=dyf_rename_3, f=lambda x: x['area'] < 4)
 dyf_small.toDF().show()
 
 ```
@@ -292,8 +288,8 @@ dyf_small.toDF().show()
 write away
 ```python
 glueContext.write_dynamic_frame.from_options( \
-    frame = dyf_filter_root_no_ownership, \
-    connection_options = {'path': ‘/home/glue_user/workspace/'}, \
+    frame = dyf_small, \
+    connection_options = {'path': '/home/glue_user/workspace/'}, \
     connection_type = 's3', \
     format = 'json')
 ```
@@ -350,16 +346,9 @@ from pyspark.sql import Row
 glueContext = GlueContext(SparkContext.getOrCreate())
 spark = glueContext.spark_session
 
-df_row = spark.createDataFrame([
-    Row(json=u'{ "type": "Feature", "properties": { "Lat": 2582424.95945, "Long": 377739.06066299998, "Area": 4.7500000098835846 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 377738.810662999982014, 2582426.20945 ], [ 377738.810662999982014, 2582425.70945 ], [ 377738.310662999982014, 2582425.70945 ], [ 377737.810662999982014, 2582425.70945 ], [ 377737.810662999982014, 2582423.70945 ], [ 377739.310662999982014, 2582423.70945 ], [ 377739.310662999982014, 2582424.20945 ], [ 377739.810662999982014, 2582424.20945 ], [ 377739.810662999982014, 2582424.70945 ], [ 377740.310662999982014, 2582424.70945 ], [ 377740.310662999982014, 2582425.70945 ], [ 377739.810662999982014, 2582425.70945 ], [ 377739.810662999982014, 2582426.20945 ], [ 377738.810662999982014, 2582426.20945 ] ] ] } }'),
-    Row(json=u'{ "type": "Feature", "properties": { "Lat": 2582322.20945, "Long": 393815.81066299998, "Area": 3.7500000098835846 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 393814.810662999982014, 2582323.20945 ], [ 393814.810662999982014, 2582321.20945 ], [ 393816.310662999982014, 2582321.20945 ], [ 393816.310662999982014, 2582321.70945 ], [ 393816.810662999982014, 2582321.70945 ], [ 393816.810662999982014, 2582323.20945 ], [ 393814.810662999982014, 2582323.20945 ] ] ] } }')
-    
-])
+dyf_json = glueContext.create_dynamic_frame_from_catalog(
+    database="treesdb<<name>>", table_name="<<bucket-name-bronze>>")
 
-df_json = spark.read.json(df_row.rdd.map(lambda r: r.json))
-df_json.printSchema()
-
-dyf_json = DynamicFrame.fromDF(df_json, glueContext, "dyf_json")
 
 dyf_relationize = dyf_json.relationalize("root", "s3://base-setup-scriptsbucket40feb4b1-esjpmoevpj2q/")
 dyf_relationize.keys()

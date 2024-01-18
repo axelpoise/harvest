@@ -3,6 +3,7 @@
 setup boto3 session
 ```python 
 import boto3
+from time import sleep
 
 session = boto3.session.Session(profile_name='data')
 client = session.client('athena')
@@ -11,13 +12,13 @@ create athena query.
 ```python
 result = client.start_query_execution(
     QueryString="""--sql
-    SELECT * FROM treesdb.<<table_name>> LIMIT 10
+    SELECT * FROM treesdb<<name>>.<<table_name>> LIMIT 10
     """,
     QueryExecutionContext={
-        'Database': 'treesdb'
+        'Database': 'treesdb<<name>>'
     },
     ResultConfiguration={
-        'OutputLocation': '<<outputbucket_name>>/athena-logs'
+        'OutputLocation': 's3://<<outputbucket_name>>/athena-logs'
 
     },
     WorkGroup='primary'
@@ -29,7 +30,7 @@ print(f'query execution id {result["QueryExecutionId"]}')
 sleep(3)
 s3 = session.client('s3')
 response = s3.get_object(
-    Bucket='base-setup-silverbucket9b9e950b-1nk6t0unvltlq',
+    Bucket='<<outputbucket_name>>',
     Key=f'athena-logs/{result["QueryExecutionId"]}.csv'
 )
 body = response['Body'].read().decode("utf-8")
@@ -45,5 +46,5 @@ python athena_queries.py
 ```
 Run the following to get table columns
 ```shell
-aws glue get-tables --database-name 'treesdb' --profile data
+aws glue get-tables --database-name 'treesdb<<name>>' --profile data
 ```

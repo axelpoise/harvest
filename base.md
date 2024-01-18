@@ -74,7 +74,7 @@ class StorageSetupStack(cdk.Stack):
         super().__init__(scope, construct_id, env=get_environment())
 ```
 
-Add method to BaseSetupStack
+Add method to StorageSetupStack
 ```python
 def add_s3_buckets(self, name: str):
     self.bronze_bucket: cdk.aws_s3.Bucket = cdk.aws_s3.Bucket(self, f"BronzeBucket{name}",
