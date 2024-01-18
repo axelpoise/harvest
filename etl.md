@@ -225,7 +225,7 @@ cdk synth
 to run the docker open any terminal and run:
 ```shell
 # Terminal 1
-docker run -it -e DISABLE_SSL=true --rm -v ~/<<<extra_files>>>/:/home/glue_user/workspace/ extra_python_path/ -e PYTHONPATH=$PYTHONPATH:/home/glue_user/workspace/extra_python_path/  -p 4040:4040 -p 18080:18080 -p 8998:8998 -p 8888:8888 --name glue_jupyter_lab amazon/aws-glue-libs:glue_libs_3.0.0_image_01 /home/glue_user/jupyter/jupyter_start.sh
+docker run -it -e DISABLE_SSL=true --rm -p 4040:4040 -p 18080:18080 -p 8998:8998 -p 8888:8888 --name glue_jupyter_lab amazon/aws-glue-libs:glue_libs_3.0.0_image_01 /home/glue_user/jupyter/jupyter_start.sh
 ```
 
 ### Glue and spark
