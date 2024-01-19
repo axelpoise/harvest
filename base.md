@@ -43,7 +43,7 @@ aws sts get-caller-identity --profile data > account.json
 ````
 ------ or on windows -------------
 ```powershell
-aws sts get-caller-identity --profile data | File-Out --FilePath account.json
+aws sts get-caller-identity --profile data | Out-File -Filepath account.json
 ```
 To distinguish your project on the amazon cloud change the qualifier in the `cdk.json` file.
 ```json
