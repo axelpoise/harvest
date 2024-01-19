@@ -121,5 +121,5 @@ cdk bootstrap --profile data --qualifier <<<qualifier>>> --toolkit-stack-name <<
 
 deploy stack
 ```shell
-cdk deploy base-setup-<<<name>>> --profile data
+cdk deploy storage-setup-<<<name>>> --profile data
 ```
